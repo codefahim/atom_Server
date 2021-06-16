@@ -33,9 +33,8 @@ client.connect((err) => {
     innovationCollection.find({}).toArray((err, documents) => {
       res.send(documents);
     });
-     console.log('ace');
+    console.log('ace');
   });
- 
 
   // Insert into Database
   app.post('/insertInnovation', (req, res) => {
@@ -55,6 +54,35 @@ client.connect((err) => {
       res.send(result);
     });
     console.log(req.body);
+  });
+
+  //update
+
+  app.patch('/updateInnovation/:uid', (req, res) => {
+    const id = ObjectID(req.params.uid);
+    console.log(req.body);
+    innovationCollection
+      .updateOne(
+        { _id: id },
+        {
+          $set: {
+            'userInfo.headLine': req.body.headLine,
+            'userInfo.description': req.body.description,
+          },
+        }
+      )
+      .then((result) => {
+        res.send(result);
+        console.log(result);
+      });
+  });
+
+  //Delete item
+  app.delete('/DeleteInnovation/:id', (req, res) => {
+    const id = ObjectID(req.params.id);
+    innovationCollection.deleteOne({ _id: id }).then((result) => {
+      res.send(result);
+    });
   });
 });
 
