@@ -38,54 +38,65 @@ client.connect((err) => {
   const innovationCollection = client.db('Atom').collection('innovation');
   // Real all innovation from server
   app.get('/innovations', (req, res) => {
-    // idToken comes from the client app
-    // admin
-    //   .auth()
-    //   .verifyIdToken(idToken)
-    //   .then((decodedToken) => {
-    //     const uid = decodedToken.uid;
-    //     // ...
-    //   })
-    //   .catch((error) => {
-    //     // Handle error
-    //   });
-    innovationCollection.find({}).toArray((err, documents) => {
-      res.send(documents);
-    });
+      innovationCollection.find({}).toArray((err, documents) => {
+        res.send(documents);
+      });
     console.log('ace');
   });
 
   // Insert into Database
-  app.post('/insertInnovation', (req, res) => {
+  app.post('/insertInnovation', (req, res) =>
+  {
+    const Bearer = req.headers.authorization;
    const profileImage = req.files.image;
     const profileImageName = req.files.image.name;
      const userInfo = req.body;
-      const filePath = `${ __dirname }/image/${ profileImageName }`;
-      profileImage.mv(filePath, err =>
-      {
-        if (err) {
-          console.log(err);
-          return res
-            .status(500)
-            .send({ msg: 'failed to update profile image' });
-        }
-        const newImage = fse.readFileSync(filePath);
-        const encode = newImage.toString('base64');
-        var imageForDB = {
-          imgB: Buffer(encode, 'base64'),
-        };
-        innovationCollection.insertOne({ userInfo, imageForDB }).then((result) => {
-          fse.remove(filePath);
-          res.send(result);
+    const filePath = `${ __dirname }/image/${ profileImageName }`;
+    //jwt start
+    if (Bearer && Bearer.startsWith('Bearer '))
+    {
+      const idToken = Bearer.split(' ');
+      // idToken comes from the client app
+      console.log(idToken[1])
+      admin
+        .auth()
+        .verifyIdToken(idToken[1])
+        .then((decodedToken) => {
+          const uid = decodedToken.uid;
+          console.log({uid})
+        profileImage.mv(filePath, (err) => {
+          if (err) {
+            console.log(err);
+            return res
+              .status(500)
+              .send({ msg: 'failed to update profile image' });
+          }
+          const newImage = fse.readFileSync(filePath);
+          const encode = newImage.toString('base64');
+          var imageForDB = {
+            imgB: Buffer(encode, 'base64'),
+          };
+          innovationCollection
+            .insertOne({ userInfo, imageForDB })
+            .then((result) => {
+              fse.remove(filePath);
+              res.send(result);
+            });
         });
-      });
+
+        })
+        .catch((error) => {
+          // Handle error
+        });
+     
+    }
   });
 
   //update
 
   app.patch('/updateInnovation/:uid', (req, res) => {
     const id = ObjectID(req.params.uid);
-    console.log(req.body);
+    const Bearer = req.headers.authorization;
     innovationCollection
       .updateOne(
         { _id: id },
