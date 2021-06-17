@@ -45,21 +45,17 @@ client.connect((err) => {
   });
 
   // Insert into Database
-  app.post('/insertInnovation', (req, res) =>
-  {
-    const Bearer = req.headers.authorization;
-
-    //jwt start
-    if (Bearer && Bearer.startsWith('Bearer ')) {
-      const idToken = Bearer.split(' ');
-      // idToken comes from the client app
-      console.log(idToken[1]);
+  app.post('/insertInnovation/:uid', (req, res) => {
+    
+    const idToken = req.params.uid
+    if (idToken !== undefined) {
+   
       admin
         .auth()
-        .verifyIdToken(idToken[1])
+        .verifyIdToken(idToken)
         .then((decodedToken) => {
           const uid = decodedToken.uid;
-          console.log({ uid });;
+          console.log({ uid });
           const profileImage = req.files.image;
           const profileImageName = req.files.image.name;
           const userInfo = req.body;
