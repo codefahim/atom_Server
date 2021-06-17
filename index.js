@@ -5,9 +5,17 @@ const bodyParser = require('body-parser');
 const MongoClient = require('mongodb').MongoClient;
 require('dotenv').config();
 var fileupload = require('express-fileupload');
-
+var admin = require('firebase-admin');
 const ObjectID = require('mongodb').ObjectID;
 const fse = require('fs-extra');
+
+var admin = require('firebase-admin');
+
+var serviceAccount = require('./atomosph-firebase-adminsdk-7mmq0-be97cbdd0b.json');
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
 const port = process.env.PORT || 5000;
 
@@ -30,6 +38,17 @@ client.connect((err) => {
   const innovationCollection = client.db('Atom').collection('innovation');
   // Real all innovation from server
   app.get('/innovations', (req, res) => {
+    // idToken comes from the client app
+    admin
+      .auth()
+      .verifyIdToken(idToken)
+      .then((decodedToken) => {
+        const uid = decodedToken.uid;
+        // ...
+      })
+      .catch((error) => {
+        // Handle error
+      });
     innovationCollection.find({}).toArray((err, documents) => {
       res.send(documents);
     });
@@ -38,22 +57,28 @@ client.connect((err) => {
 
   // Insert into Database
   app.post('/insertInnovation', (req, res) => {
-    const profileImage = req.files.image;
+   const profileImage = req.files.image;
     const profileImageName = req.files.image.name;
-    const userInfo = req.body;
-    const filePath = `${__dirname}/image/${profileImageName}`;
-    profileImage.mv(filePath);
-    const newImage = fse.readFileSync(filePath);
-    const encode = newImage.toString('base64');
-
-    var imageForDB = {
-      imgB: Buffer(encode, 'base64'),
-    };
-    innovationCollection.insertOne({ userInfo, imageForDB }).then((result) => {
-      fse.remove(filePath);
-      res.send(result);
-    });
-    console.log(req.body);
+     const userInfo = req.body;
+      const filePath = `${ __dirname }/image/${ profileImageName }`;
+      profileImage.mv(filePath, err =>
+      {
+        if (err) {
+          console.log(err);
+          return res
+            .status(500)
+            .send({ msg: 'failed to update profile image' });
+        }
+        const newImage = fse.readFileSync(filePath);
+        const encode = newImage.toString('base64');
+        var imageForDB = {
+          imgB: Buffer(encode, 'base64'),
+        };
+        innovationCollection.insertOne({ userInfo, imageForDB }).then((result) => {
+          fse.remove(filePath);
+          res.send(result);
+        });
+      });
   });
 
   //update
