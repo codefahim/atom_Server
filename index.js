@@ -45,11 +45,10 @@ client.connect((err) => {
   });
 
   // Insert into Database
-  app.post('/insertInnovation/:uid', (req, res) => {
-    
-    const idToken = req.params.uid
+  app.post('/insertInnovation', (req, res) => {
+    const idToken = req.body.uid;
+    console.log(idToken);
     if (idToken !== undefined) {
-   
       admin
         .auth()
         .verifyIdToken(idToken)
