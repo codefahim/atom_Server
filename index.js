@@ -46,43 +46,64 @@ client.connect((err) => {
 
   // Insert into Database
   app.post('/insertInnovation', (req, res) => {
-    const idToken = req.body.uid;
-    console.log(idToken);
-    if (idToken !== undefined) {
-      admin
-        .auth()
-        .verifyIdToken(idToken)
-        .then((decodedToken) => {
-          const uid = decodedToken.uid;
-          console.log({ uid });
-          const profileImage = req.files.image;
-          const profileImageName = req.files.image.name;
-          const userInfo = req.body;
-          const filePath = `${__dirname}/image/${profileImageName}`;
-          profileImage.mv(filePath, (err) => {
-            if (err) {
-              console.log(err);
-              return res
-                .status(500)
-                .send({ msg: 'failed to update profile image' });
-            }
-            const newImage = fse.readFileSync(filePath);
-            const encode = newImage.toString('base64');
-            var imageForDB = {
-              imgB: Buffer(encode, 'base64'),
-            };
-            innovationCollection
-              .insertOne({ userInfo, imageForDB })
-              .then((result) => {
-                fse.remove(filePath);
-                res.send(result);
-              });
-          });
-        })
-        .catch((error) => {
-          // Handle error
+    // const idToken = req.body.uid;
+    // console.log(idToken);
+    // if (idToken !== undefined) {
+    //   admin
+    //     .auth()
+    //     .verifyIdToken(idToken)
+    //     .then((decodedToken) => {
+    //       const uid = decodedToken.uid;
+    //       console.log({ uid });
+    //       const profileImage = req.files.image;
+    //       const profileImageName = req.files.image.name;
+    //       const userInfo = req.body;
+    //       const filePath = `${__dirname}/image/${profileImageName}`;
+    //       profileImage.mv(filePath, (err) => {
+    //         if (err) {
+    //           console.log(err);
+    //           return res
+    //             .status(500)
+    //             .send({ msg: 'failed to update profile image' });
+    //         }
+    //         const newImage = fse.readFileSync(filePath);
+    //         const encode = newImage.toString('base64');
+    //         var imageForDB = {
+    //           imgB: Buffer(encode, 'base64'),
+    //         };
+    //         innovationCollection
+    //           .insertOne({ userInfo, imageForDB })
+    //           .then((result) => {
+    //             fse.remove(filePath);
+    //             res.send(result);
+    //           });
+    //       });
+    //     })
+    //     .catch((error) => {
+    //       // Handle error
+    //     });
+
+    const profileImage = req.files.image;
+    const profileImageName = req.files.image.name;
+    const userInfo = req.body;
+    const filePath = `${__dirname}/image/${profileImageName}`;
+    profileImage.mv(filePath, (err) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).send({ msg: 'failed to update profile image' });
+      }
+      const newImage = fse.readFileSync(filePath);
+      const encode = newImage.toString('base64');
+      var imageForDB = {
+        imgB: Buffer(encode, 'base64'),
+      };
+      innovationCollection
+        .insertOne({ userInfo, imageForDB })
+        .then((result) => {
+          fse.remove(filePath);
+          res.send(result);
         });
-    }
+    });
   });
 
   //update
