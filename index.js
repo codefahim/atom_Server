@@ -45,7 +45,7 @@ client.connect((err) => {
   });
 
   // Insert into Database
-  app.post('/insertInnovation', (req, res) => {
+  app.post('/insertInnovations', (req, res) => {
     // const idToken = req.body.uid;
     // console.log(idToken);
     // if (idToken !== undefined) {
