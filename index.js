@@ -39,16 +39,16 @@ client.connect((err) => {
   // Real all innovation from server
   app.get('/innovations', (req, res) => {
     // idToken comes from the client app
-    admin
-      .auth()
-      .verifyIdToken(idToken)
-      .then((decodedToken) => {
-        const uid = decodedToken.uid;
-        // ...
-      })
-      .catch((error) => {
-        // Handle error
-      });
+    // admin
+    //   .auth()
+    //   .verifyIdToken(idToken)
+    //   .then((decodedToken) => {
+    //     const uid = decodedToken.uid;
+    //     // ...
+    //   })
+    //   .catch((error) => {
+    //     // Handle error
+    //   });
     innovationCollection.find({}).toArray((err, documents) => {
       res.send(documents);
     });
